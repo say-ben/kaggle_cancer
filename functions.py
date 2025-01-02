@@ -8,11 +8,11 @@ def aggregate_table(data, factor, columns, aggs):
 
     for i, col in enumerate(columns):
         if aggs[i] == 'count':
-            tab_new = data[[factor, columns[i]]].groupby(factor).count()
+            tab_new = data[[factor, columns[i]]].groupby(factor, observed=True).count()
         if aggs[i] == 'mean':
-            tab_new = data[[factor, columns[i]]].groupby(factor).mean()
+            tab_new = data[[factor, columns[i]]].groupby(factor, observed=True).mean()
         if aggs[i] == 'sum':
-            tab_new = data[[factor, columns[i]]].groupby(factor).sum()
+            tab_new = data[[factor, columns[i]]].groupby(factor, observed=True).sum()
 
         tab = pd.concat([tab, tab_new], axis=1)
     
