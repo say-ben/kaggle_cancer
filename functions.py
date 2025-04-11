@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -41,3 +42,54 @@ def plotly_plot(x, y_list, y_names=[None]*10, secondary_y=[False]*10, plot_type=
         fig['layout']['yaxis2']['showgrid'] = False
 
     return fig
+
+
+
+def numerical_summary(df, cols):
+
+    tab = pd.DataFrame(columns = ['Total Rows', 'Missing Rows', 'Populated Rows', 'Unique Values', 'Maximum', 'Minimum', 'Range', 
+                                  'Median', 'Upper Quartile', 'Lower Quartile', 'IQR', 'Variance', 'Std Deviation'])
+
+    for i in cols:
+        total_rows = len(df)
+        missing_rows = df[i].isna().sum()
+        populated_rows = total_rows - missing_rows
+        unique_values = len(df[i].unique())
+        maximum = df[i].max()
+        minimum = df[i].min()
+        range = maximum - minimum
+        median = df[i].median()
+        upper_quartile = np.percentile(df[i], 75)
+        lower_quartile = np.percentile(df[i], 25)
+        iqr = upper_quartile - lower_quartile
+        var = df[i].var()
+        stdev = df[i].std()
+
+        tab.loc[i] = [total_rows, missing_rows, populated_rows, unique_values, maximum, minimum, range, median, upper_quartile, lower_quartile, iqr, var, stdev]
+    
+    return tab
+
+
+
+def categorical_summary(df, cols):
+
+    tab = pd.DataFrame(columns = ['Feature', 'Type', 'Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5', 'Level 6', 'Level 7', 'Level 8', 'Level 9', 'Level 10', 'Missing'])
+    
+    for e, i in enumerate(cols):
+
+        value_counts = df[i].value_counts()
+        levels = list(value_counts.index)
+        values = list(value_counts)
+        other = pd.Series(values[10:]).sum()
+        missing = df[i].isna().sum()
+        if other > 0:
+            levels = levels[:9] + ['Other']
+            values = values[:9] + [other]
+        levels = levels + ['-'] * 10
+        values = values + ['-'] * 10
+        levels = levels[:10] + ['Missing']
+        values = values[:10] + [missing]
+        tab.loc[2*e] = [i, 'Levels'] + levels[:11]
+        tab.loc[2*e+1] = [i, 'Counts'] + values[:11]
+
+    return tab
