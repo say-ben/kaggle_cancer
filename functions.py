@@ -3,7 +3,24 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-def aggregate_table(data, factor, columns, aggs):
+def aggregate_table(
+    data, 
+    factor: str, 
+    columns: list, 
+    aggs: list = ['count']
+    ):
+    
+    """Aggregates a list of columns within a pandas dataframe by a chosen factor.
+
+    Args:
+        data (pandas.DataFrame): Raw dataset to be aggregated.
+        factor (str): Column within the data to be aggregated by.
+        columns (list): List of columns to be aggregated.
+        aggs (list): Aggregate functions to be applied to the columns specified.
+
+    Returns:
+        pandas.DataFrame: Aggregated dataframe
+    """
 
     tab = pd.DataFrame()
 
@@ -23,7 +40,44 @@ def aggregate_table(data, factor, columns, aggs):
 
 
 
-def plotly_plot(x, y_list, y_names=[None]*10, secondary_y=[False]*10, plot_type=['scatter']*10, colours=None, title=None, x_title=None, y_title=None, y2_title=None, dims=[900,600], x_range=None, y_range=None, y2_range=None):
+def plotly_plot(
+    x: list, 
+    y_list: list, 
+    y_names: list = None, 
+    secondary_y: list = [False] * 10, 
+    plot_type: list = ['scatter'] * 10, 
+    colours: list = [None] * 10, 
+    title: str = None, 
+    x_title: str = None, 
+    y_title:str = None, 
+    y2_title: str = None, 
+    dims: list = [900,600], 
+    x_range: list = None, 
+    y_range: list = None, 
+    y2_range: list = None
+    ):
+    
+    """Generates a plotly plot based on an aggregated dataframe with the x and y columns specified.
+    
+    Args:
+        x (list): List of values 
+        y_list (list):  
+        y_names (list):  
+        secondary_y (list):  
+        plot_type (list):  
+        colours (list):  
+        title (str):  
+        x_title (str):  
+        y_title (str):  
+        y2_title (str):  
+        dims (list):  
+        x_range (list):  
+        y_range (list):  
+        y2_range (list): 
+
+    Returns:
+        object: A plotly object that can be displayed as a plot or written as an image.
+    """
     
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
@@ -73,23 +127,32 @@ def numerical_summary(df, cols):
 
 def categorical_summary(df, cols):
 
-    tab = pd.DataFrame(columns = ['Feature', 'Type', 'Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5', 'Level 6', 'Level 7', 'Level 8', 'Level 9', 'Level 10', 'Missing'])
+    final_tab = pd.DataFrame()
     
-    for e, i in enumerate(cols):
+    for i, col in enumerate(cols):
 
-        value_counts = df[i].value_counts()
+        value_counts = df[col].value_counts()
         levels = list(value_counts.index)
         values = list(value_counts)
         other = pd.Series(values[10:]).sum()
-        missing = df[i].isna().sum()
+        missing = df[col].isna().sum()
         if other > 0:
             levels = levels[:9] + ['Other']
             values = values[:9] + [other]
         levels = levels + ['-'] * 10
-        values = values + ['-'] * 10
+        values = values + [0] * 10
         levels = levels[:10] + ['Missing']
         values = values[:10] + [missing]
-        tab.loc[2*e] = [i, 'Levels'] + levels[:11]
-        tab.loc[2*e+1] = [i, 'Counts'] + values[:11]
+        
+        tab = pd.DataFrame()
+        
+        tab["Levels"] = levels
+        tab["Count"] = values
+        tab["Proportion"] = tab["Count"] / len(df)
+        tab["Feature"] = col
+        
+        tab = tab[["Feature", "Levels", "Count", "Proportion"]]
+    
+        final_tab = pd.concat([final_tab, tab], axis=1)
 
-    return tab
+    return final_tab
